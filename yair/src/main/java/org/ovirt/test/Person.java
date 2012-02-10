@@ -12,7 +12,7 @@ public class Person {
 	}
 	
 	@Transactional(scope=TransactionScope.REQUIRED)  
-	public void bar() {
+	protected void bar() {
 		System.out.println("bar");
 	}
 

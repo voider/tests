@@ -9,7 +9,7 @@ public class Person2 {
 		bar();
 	}
 
-	public void bar() {
+	protected void bar() {
 		TransactionSupport.runInScope(new TransactionMethod<Void>() {
 
 			public Void run() {

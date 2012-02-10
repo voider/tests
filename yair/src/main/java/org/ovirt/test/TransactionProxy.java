@@ -62,9 +62,10 @@ public class TransactionProxy implements MethodInterceptor {
 		//The method at the super class is the one that is potentially annotated
 		//with @Transactional - so it is important to retrieve it and not work on the 
 		//provided method object
-		Method originalMethod = obj.getClass().getSuperclass().getMethod(method.getName());
+		Method originalMethod = obj.getClass().getSuperclass().getDeclaredMethod(method.getName());
+		
 		Object result = null;
-		Transactional annotation = (Transactional)originalMethod.getAnnotation(Transactional.class);
+		Transactional annotation = (originalMethod != null)?(Transactional)originalMethod.getAnnotation(Transactional.class):null;
 		//If there is no @Transactional annotation, or its value is none - 
 		//no need to invoke the method in a context of TransactionSupport
 		if (annotation != null && annotation.scope() != TransactionScope.NONE) {
