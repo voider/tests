@@ -1,0 +1,3 @@
+Some personal tests, and test for ideas to be implemented on oVirt open source project (I am a maintainer of the engine-core).
+oVirt (open source project for virtualizaion management over KVM) can be found at www.ovirt.org
+The current oVirt related test deals with an idea to insert annotation based Transaction scoping into the code, which is command pattern based.
