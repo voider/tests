@@ -2,12 +2,17 @@ package org.ovirt.test;
 
 import java.lang.reflect.Method;
 
-import org.ovirt.test.TransactionSupport.TransactionScope;
-
 import net.sf.cglib.proxy.Enhancer;
 import net.sf.cglib.proxy.MethodInterceptor;
 import net.sf.cglib.proxy.MethodProxy;
 
+import org.ovirt.test.TransactionSupport.TransactionScope;
+
+/**
+ * This Proxy is used to intercept methods and invoke them using
+ * TransactionSupport, if @Transactional annotation is present on them
+ * and the scope value is not TransactionScope.NONE 
+ */
 public class TransactionProxy implements MethodInterceptor {
 	
 	private Object invocationTarget;
@@ -54,21 +59,28 @@ public class TransactionProxy implements MethodInterceptor {
 		setInvocationTarget(obj);
 		setInvocationProxy(proxy);
 		setParams(params);
+		//The method at the super class is the one that is potentially annotated
+		//with @Transactional - so it is important to retrieve it and not work on the 
+		//provided method object
 		Method originalMethod = obj.getClass().getSuperclass().getMethod(method.getName());
 		Object result = null;
-		TransactionScope scope = TransactionScope.NONE;
-		if (originalMethod.isAnnotationPresent(Transactional.class)) {
-			scope = TransactionSupport.TransactionScope.REQUIRED;
-		}
-		result = TransactionSupport.runInScope(new TransactionMethod<Object>() {
-			public Object run()  {
-				try {
-					return invokeSuper();
-				} catch (Throwable ex) {
-					throw new RuntimeException(ex);
+		Transactional annotation = (Transactional)originalMethod.getAnnotation(Transactional.class);
+		//If there is no @Transactional annotation, or its value is none - 
+		//no need to invoke the method in a context of TransactionSupport
+		if (annotation != null && annotation.scope() != TransactionScope.NONE) {
+			result = TransactionSupport.runInScope(new TransactionMethod<Object>() {
+				public Object run()  {
+					try {
+						return invokeSuper();
+					} catch (Throwable ex) {
+						throw new RuntimeException(ex);
+					}
 				}
-			}
-		},scope);
+			},annotation.scope());
+		}
+		else {
+			result = invokeSuper();
+		}
 		return result;
 	}	
 	
